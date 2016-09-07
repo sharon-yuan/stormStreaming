@@ -55,7 +55,7 @@ public class DailyEventTopology extends BasicTopology {
 		conf.put(Config.NIMBUS_HOST, nimbusHost);
 
 		try {
-			StormSubmitter.submitTopology("daily-event-processor", conf, builder.createTopology());
+			StormSubmitter.submitTopology("zoom-msg-processor", conf, builder.createTopology());
 
 		} catch (Exception e) {
 			LOG.error("Error submiting Topology", e);
