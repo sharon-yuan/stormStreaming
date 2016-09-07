@@ -19,18 +19,22 @@ import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
-import breeze.math.Field;
 
+@SuppressWarnings("deprecation")
 public class HbaseBolt implements IRichBolt {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3742575339677330780L;
+
 	private static final Logger LOG = Logger.getLogger(HbaseBolt.class);
 
 	private static final String ZOOM_TABLE_NAME = "zoom";
 	private static final String ZOOM_TABLE_COLUMN_FAMILY_NAME = "msg";
 private Tuple inputTuple=null;
 	private OutputCollector collector;
-	@SuppressWarnings({ "deprecation", "unused" })
+
 	private HConnection connection;
-	@SuppressWarnings("deprecation")
 	private HTableInterface zoomMsgTable;
 
 	private boolean persistAllEvents;
@@ -59,7 +63,7 @@ private Tuple inputTuple=null;
 		LOG.info("About to insert tuple[" + arg0 + "] into HBase...");
 		List<String> listFileds = arg0.getFields().toList();
 		Put put = new Put(Bytes.toBytes("zoom-suirui-19900326"));
-		String columnFamily = "zoom";
+		String columnFamily = ZOOM_TABLE_COLUMN_FAMILY_NAME ;
 		for (String aString : listFileds)
 			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(aString),
 					Bytes.toBytes(arg0.getStringByField(aString)));
@@ -72,9 +76,10 @@ private Tuple inputTuple=null;
 
 			e.printStackTrace();
 		}
+		collector.ack(arg0);
 	}
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings({ "rawtypes" })
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 

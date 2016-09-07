@@ -7,7 +7,7 @@ import backtype.storm.spout.Scheme;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
 
-public class KafkaSpout implements Scheme{
+public class EventScheme implements Scheme{
 
 	/**
 	 * 
