@@ -21,7 +21,12 @@ public class DailyEventTopology extends BasicTopology {
 	}
 
 	public static void main(String[] args) throws Exception {
-		String configFileLocation = args[0];
+		String configFileLocation;
+		if (args!=null&&args.length>0){
+			System.out.println(args.length);
+			for(String astring:args)System.out.println(astring);
+		configFileLocation = args[0];}
+		else configFileLocation=null;
 		DailyEventTopology truckTopology = new DailyEventTopology(configFileLocation);
 		truckTopology.WSYBuildAndSubmit();
 	}
