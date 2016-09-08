@@ -1,6 +1,7 @@
 package com.Suirui.stormStreaming.bolt;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -102,8 +103,14 @@ private Tuple inputTuple=null;
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		Fields arg0;
 		if(inputTuple!=null){
+			
 		 arg0=new Fields(inputTuple.getFields().toList());}
-		else arg0=null;
+		else {
+			LOG.error("inputTuple == null");
+			ArrayList<String>tempArray=new ArrayList<>();
+			tempArray.add("firstAttri");
+			arg0=new Fields(tempArray);
+			}
 		declarer.declare(arg0);
 
 	}
