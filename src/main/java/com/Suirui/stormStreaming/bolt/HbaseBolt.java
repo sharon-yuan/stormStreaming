@@ -32,7 +32,7 @@ public class HbaseBolt implements IRichBolt {
 
 	private static final String ZOOM_TABLE_NAME = "zoom";
 	private static final String ZOOM_TABLE_COLUMN_FAMILY_NAME = "msg";
-private Tuple inputTuple=null;
+
 	private OutputCollector collector;
 
 	private HConnection connection;
@@ -60,7 +60,7 @@ private Tuple inputTuple=null;
 
 	@Override
 	public void execute(Tuple arg0) {
-		inputTuple=arg0;
+		
 		LOG.info("About to insert tuple[" + arg0 + "] into HBase...");
 		List<String> listFileds = arg0.getFields().toList();
 		double randemD=Math.random()*1000;
@@ -103,15 +103,12 @@ private Tuple inputTuple=null;
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		Fields arg0;
-		if(inputTuple!=null){
-			
-		 arg0=new Fields(inputTuple.getFields().toList());}
-		else {
-			LOG.error("inputTuple == null");
+		
+		
 			ArrayList<String>tempArray=new ArrayList<String>();
 			tempArray.add("firstAttri");
 			arg0=new Fields(tempArray);
-			}
+		
 		declarer.declare(arg0);
 
 	}
