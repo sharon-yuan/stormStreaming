@@ -63,7 +63,8 @@ private Tuple inputTuple=null;
 		inputTuple=arg0;
 		LOG.info("About to insert tuple[" + arg0 + "] into HBase...");
 		List<String> listFileds = arg0.getFields().toList();
-		Put put = new Put(Bytes.toBytes("zoom-suirui-19900326"));
+		double randemD=Math.random()*1000;
+		Put put = new Put(Bytes.toBytes("zoom-suirui-19900326"+randemD));
 		String columnFamily = ZOOM_TABLE_COLUMN_FAMILY_NAME ;
 		for (String aString : listFileds)
 			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes(aString),
