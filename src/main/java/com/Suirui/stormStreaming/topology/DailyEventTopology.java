@@ -37,7 +37,10 @@ public class DailyEventTopology extends BasicTopology {
 		LOG.info("start config");
 		configureKafkaSpout(builder);
 		if (topologyConfig.getProperty("kafka.topic").contains("msg"))
+			{
+			LOG.info("start HBaseconfig");
 			configureHBaseBolt(builder);
+			}
 		else
 			;// TODO configureHDFSBolt(builder);
 		Config conf = new Config();
@@ -47,16 +50,19 @@ public class DailyEventTopology extends BasicTopology {
 		 * Each worker represents a JVM where executor thread will be spawned
 		 * from
 		 */
+		LOG.info("get storm.daily.topology.workers");
 		Integer topologyWorkers = Integer.valueOf(topologyConfig.getProperty("storm.daily.topology.workers"));
 		conf.put(Config.TOPOLOGY_WORKERS, topologyWorkers);
 
 		// Read the nimbus host in from the config file as well
+		LOG.info("get nimbus.host");
 		String nimbusHost = topologyConfig.getProperty("nimbus.host");
 		conf.put(Config.NIMBUS_HOST, nimbusHost);
 
 		try {
+			LOG.info("starting submit topology");
 			StormSubmitter.submitTopology("zoom-msg-processor", conf, builder.createTopology());
-
+			LOG.info("ending submit topology");
 		} catch (Exception e) {
 			LOG.error("Error submiting Topology", e);
 		}
