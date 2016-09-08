@@ -107,7 +107,7 @@ private Tuple inputTuple=null;
 		 arg0=new Fields(inputTuple.getFields().toList());}
 		else {
 			LOG.error("inputTuple == null");
-			ArrayList<String>tempArray=new ArrayList<>();
+			ArrayList<String>tempArray=new ArrayList<String>();
 			tempArray.add("firstAttri");
 			arg0=new Fields(tempArray);
 			}
