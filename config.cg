@@ -45,7 +45,7 @@ spout.thread.count=5
 bolt.thread.count=1
 
 #storm topology settings
-storm.zoom.topology.workers=4
+storm.daily.topology.workers=4
 
 #hdfs bolt settings
 hdfs.path=/zoom

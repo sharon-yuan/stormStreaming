@@ -72,7 +72,7 @@ public class DailyEventTopology extends BasicTopology {
 	
 	
 	public int configureKafkaSpout(TopologyBuilder builder) {
-		KafkaSpout kafkaSpout = constructKafkaSpout();
+		KafkaSpout kafkaSpout = new KafkaSpout(constructKafkaSpoutConf());
 
 		int spoutCount = Integer.valueOf(topologyConfig.getProperty("spout.thread.count"));
 		int boltCount = Integer.valueOf(topologyConfig.getProperty("bolt.thread.count"));
@@ -81,10 +81,7 @@ public class DailyEventTopology extends BasicTopology {
 		return boltCount;
 	}
 
-	private KafkaSpout constructKafkaSpout() {
-		KafkaSpout kafkaSpout = new KafkaSpout(constructKafkaSpoutConf());
-		return kafkaSpout;
-	}
+	
 
 	private SpoutConfig constructKafkaSpoutConf() {
 		BrokerHosts hosts = new ZkHosts(topologyConfig.getProperty("kafka.zookeeper.host.port"));
