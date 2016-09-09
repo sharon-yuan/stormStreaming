@@ -30,7 +30,7 @@ public class HbaseBolt implements IRichBolt {
 
 	private static final Logger LOG = Logger.getLogger(HbaseBolt.class);
 
-	private static final String ZOOM_TABLE_NAME = "zoom";
+	private  String ZOOM_TABLE_NAME = "zoom";
 	private static final String ZOOM_TABLE_COLUMN_FAMILY_NAME = "msg";
 
 	private OutputCollector collector;
@@ -101,6 +101,7 @@ public class HbaseBolt implements IRichBolt {
 				}
 				if(tempTableNameFlag==false){
 					this.zoomMsgTable = connection.getTable(nameList[0]);
+					ZOOM_TABLE_NAME=nameList[0];
 					tempTableNameFlag = true;
 				}
 			} else {
