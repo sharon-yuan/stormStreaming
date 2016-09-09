@@ -37,7 +37,7 @@ notification.all.events.notification.topic.name=zoom_msg
 # Kafka Spout Settings
 kafka.zookeeper.host.port=sandbox.hortonworks.com:2181
 kafka.topic=zoom_msg
-kafka.zkRoot=/wsy
+kafka.zkRoot=
 kafka.consumer.group.id=group1
 
 #parallelism settings
@@ -50,7 +50,7 @@ storm.daily.topology.workers=4
 #hdfs bolt settings
 hdfs.path=/zoom
 hdfs.url=hdfs://sandbox.hortonworks.com:8020
-hdfs.file.prefix=truckEvents
+hdfs.file.prefix=zoom
 hdfsbolt.thread.count=4
 hdfs.file.rotation.time.minutes=5
 
