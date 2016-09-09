@@ -34,7 +34,6 @@ public class HbaseBolt implements IRichBolt {
 	private static final String ZOOM_TABLE_COLUMN_FAMILY_NAME = "msg";
 
 	private OutputCollector collector;
-
 	private HConnection connection;
 	private HTableInterface zoomMsgTable;
 
@@ -54,21 +53,20 @@ public class HbaseBolt implements IRichBolt {
 		} catch (Exception e) {
 			LOG.error("Error closing connections", e);
 		}
-	
 
 	}
 
 	@Override
 	public void execute(Tuple arg0) {
-		
+
 		LOG.info("About to insert tuple[" + arg0 + "] into HBase...");
 		List<String> listFileds = arg0.getFields().toList();
-		double randemD=Math.random()*1000;
-		Put put = new Put(Bytes.toBytes("zoom-suirui-19900326"+randemD));
-		String columnFamily = ZOOM_TABLE_COLUMN_FAMILY_NAME ;
+		double randemD = Math.random() * 1000;
+		Put put = new Put(Bytes.toBytes("zoom-suirui-19900326" + randemD));
+		String columnFamily = ZOOM_TABLE_COLUMN_FAMILY_NAME;
 		for (String aString : listFileds)
 			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes("firstAttri"),
-					Bytes.toBytes("1111"+"zoom-suirui-19900326"+randemD));
+					Bytes.toBytes("1111" + "zoom-suirui-19900326" + randemD));
 		try {
 			this.zoomMsgTable.put(put);
 			LOG.info("Success inserting event into HBase table[" + ZOOM_TABLE_NAME + "]");
@@ -85,39 +83,56 @@ public class HbaseBolt implements IRichBolt {
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 
-
 		this.collector = collector;
 		try {
+			// this.connection =
+			// HConnectionManager.createConnection(constructConfiguration());
+			// this.zoomMsgTable = connection.getTable(ZOOM_TABLE_NAME);
 			this.connection = HConnectionManager.createConnection(constructConfiguration());
-			this.zoomMsgTable = connection.getTable(ZOOM_TABLE_NAME);
-		
+
+			String[] nameList = connection.getTableNames();
+			if (nameList.length > 0) {
+				boolean tempTableNameFlag = false;
+				for (String tempTableName : nameList) {
+					if (tempTableName.equals(ZOOM_TABLE_NAME)) {
+						this.zoomMsgTable = connection.getTable(ZOOM_TABLE_NAME);
+						tempTableNameFlag = true;
+					}
+				}
+				if(tempTableNameFlag==false){
+					this.zoomMsgTable = connection.getTable(nameList[0]);
+					tempTableNameFlag = true;
+				}
+			} else {
+
+			}
+
 		} catch (Exception e) {
 			String errMsg = "Error retrievinging connection and access to dangerousEventsTable";
 			LOG.error(errMsg, e);
 			throw new RuntimeException(errMsg, e);
 		}
-	
 
 	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		Fields arg0;
-		
-		
-			ArrayList<String>tempArray=new ArrayList<String>();
-			tempArray.add("firstAttri");
-			arg0=new Fields(tempArray);
-		
+
+		ArrayList<String> tempArray = new ArrayList<String>();
+		tempArray.add("firstAttri");
+		arg0 = new Fields(tempArray);
+
 		declarer.declare(arg0);
 
 	}
 
 	@Override
 	public Map<String, Object> getComponentConfiguration() {
-		
+
 		return null;
 	}
+
 	public static Configuration constructConfiguration() {
 		Configuration config = HBaseConfiguration.create();
 		return config;
