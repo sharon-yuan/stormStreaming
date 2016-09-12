@@ -84,7 +84,6 @@ public class HbaseBolt implements IRichBolt {
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 
 		this.collector = collector;
-		
 		try {
 			// this.connection =
 			 HConnectionManager.createConnection(constructConfiguration());
@@ -137,7 +136,6 @@ public class HbaseBolt implements IRichBolt {
 
 	public static Configuration constructConfiguration() {
 		Configuration config = HBaseConfiguration.create();
-		//config.set("zookeeper.znode.parent", "/hbase-unsecure");
 		return config;
 	}
 
