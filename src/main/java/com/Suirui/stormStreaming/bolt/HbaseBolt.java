@@ -136,6 +136,7 @@ public class HbaseBolt implements IRichBolt {
 
 	public static Configuration constructConfiguration() {
 		Configuration config = HBaseConfiguration.create();
+		config.set("zookeeper.znode.parent", "/hbase-unsecure");
 		return config;
 	}
 
