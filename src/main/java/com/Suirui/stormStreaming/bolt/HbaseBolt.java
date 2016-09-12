@@ -86,9 +86,9 @@ public class HbaseBolt implements IRichBolt {
 		this.collector = collector;
 		try {
 			// this.connection =
-			/* HConnectionManager.createConnection(constructConfiguration());
-			 this.zoomMsgTable = connection.getTable(ZOOM_TABLE_NAME);*/
-			this.connection = HConnectionManager.createConnection(constructConfiguration());
+			HConnectionManager.createConnection(constructConfiguration());
+			 this.zoomMsgTable = connection.getTable(ZOOM_TABLE_NAME);
+			/*this.connection = HConnectionManager.createConnection(constructConfiguration());
 
 			String[] nameList = connection.getTableNames();
 			if (nameList.length > 0) {
@@ -106,10 +106,10 @@ public class HbaseBolt implements IRichBolt {
 				}
 			} else {
 
-			}
+			}*/
 
 		} catch (Exception e) {
-			String errMsg = "Error retrievinging connection and access to dangerousEventsTable";
+			String errMsg = "Error retrievinging connection and access to Table";
 			LOG.error(errMsg, e);
 			throw new RuntimeException(errMsg, e);
 		}
