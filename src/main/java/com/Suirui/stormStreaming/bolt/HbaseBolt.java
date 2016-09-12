@@ -87,9 +87,9 @@ public class HbaseBolt implements IRichBolt {
 		
 		try {
 			// this.connection =
-			// HConnectionManager.createConnection(constructConfiguration());
-			// this.zoomMsgTable = connection.getTable(ZOOM_TABLE_NAME);
-			this.connection = HConnectionManager.createConnection(constructConfiguration());
+			 HConnectionManager.createConnection(constructConfiguration());
+			 this.zoomMsgTable = connection.getTable(ZOOM_TABLE_NAME);
+			/*this.connection = HConnectionManager.createConnection(constructConfiguration());
 
 			String[] nameList = connection.getTableNames();
 			if (nameList.length > 0) {
@@ -108,7 +108,7 @@ public class HbaseBolt implements IRichBolt {
 			} else {
 
 			}
-
+*/
 		} catch (Exception e) {
 			String errMsg = "Error retrievinging connection and access to dangerousEventsTable";
 			LOG.error(errMsg, e);
@@ -137,7 +137,7 @@ public class HbaseBolt implements IRichBolt {
 
 	public static Configuration constructConfiguration() {
 		Configuration config = HBaseConfiguration.create();
-		config.set("zookeeper.znode.parent", "/hbase-unsecure");
+		//config.set("zookeeper.znode.parent", "/hbase-unsecure");
 		return config;
 	}
 
