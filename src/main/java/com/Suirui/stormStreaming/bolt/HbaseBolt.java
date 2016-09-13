@@ -64,8 +64,8 @@ public class HbaseBolt implements IRichBolt {
 		String filedName="";
 		for(String aString:listFileds)
 			filedName+=aString+" ";
-		double randemD = Math.random() * 1000;
-		Put put = new Put(Bytes.toBytes("zoom-suirui-19900326" + randemD));
+		
+		Put put = new Put(Bytes.toBytes("zoom-suirui-19900326 " + filedName));
 		String columnFamily = ZOOM_TABLE_COLUMN_FAMILY_NAME;
 		for (String aString : listFileds)
 			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes("firstAttri"),
