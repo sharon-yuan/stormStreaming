@@ -2,7 +2,6 @@ package com.Suirui.stormStreaming.bolt;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -60,13 +59,13 @@ public class HbaseBolt implements IRichBolt {
 	public void execute(Tuple arg0) {
 
 		LOG.info("About to insert tuple[" + arg0 + "] into HBase...");
-		List<String> listFileds = arg0.getFields().toList();
+		
 		String msgfiled=arg0.getStringByField("msg");
 		
 		double randemD = Math.random() * 1000;
 		Put put = new Put(Bytes.toBytes("zoom-suirui-19900326" + randemD));
 		String columnFamily = ZOOM_TABLE_COLUMN_FAMILY_NAME;
-		for (String aString : listFileds)
+	
 			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes("firstAttri"),
 					Bytes.toBytes(msgfiled));
 		try {
