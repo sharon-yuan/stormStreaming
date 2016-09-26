@@ -31,7 +31,7 @@ public class CountResultHbaseBolt implements IRichBolt{
 
 	private static final Logger LOG = Logger.getLogger(HbaseBolt.class);
 
-	private  String ZOOM_TABLE_NAME = "zoom";
+	private  String TABLE_NAME = "minCountResult";
 	private static final String ZOOM_TABLE_COLUMN_FAMILY_NAME = "msg";
 
 	private OutputCollector collector;
@@ -72,10 +72,10 @@ public class CountResultHbaseBolt implements IRichBolt{
 					Bytes.toBytes(msgfiled));
 		try {
 			this.zoomMsgTable.put(put);
-			LOG.info("Success inserting event into HBase table[" + ZOOM_TABLE_NAME + "]");
+			LOG.info("Success inserting event into HBase table[" + TABLE_NAME + "]");
 
 		} catch (IOException e) {
-			LOG.error("Error inserting event into HBase table[" + ZOOM_TABLE_NAME + "]");
+			LOG.error("Error inserting event into HBase table[" + TABLE_NAME + "]");
 
 			e.printStackTrace();
 		}
@@ -97,14 +97,14 @@ public class CountResultHbaseBolt implements IRichBolt{
 			if (nameList.length > 0) {
 				boolean tempTableNameFlag = false;
 				for (String tempTableName : nameList) {
-					if (tempTableName.equals(ZOOM_TABLE_NAME)) {
-						this.zoomMsgTable = connection.getTable(ZOOM_TABLE_NAME);
+					if (tempTableName.equals(TABLE_NAME)) {
+						this.zoomMsgTable = connection.getTable(TABLE_NAME);
 						tempTableNameFlag = true;
 					}
 				}
 				if(tempTableNameFlag==false){
 					this.zoomMsgTable = connection.getTable(nameList[0]);
-					ZOOM_TABLE_NAME=nameList[0];
+					TABLE_NAME=nameList[0];
 					tempTableNameFlag = true;
 				}
 			} else {
