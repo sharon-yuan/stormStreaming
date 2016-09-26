@@ -68,7 +68,7 @@ public class MinCountBolt  implements IRichBolt{
 
 	@Override  
 	public Map<String, Object> getComponentConfiguration() {  
-	    Map<String, Object> conf = new HashMap<>();  
+	    Map<String, Object> conf = new HashMap<String, Object>();  
 	    conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, emitFrequencyInSeconds);  
 	    return conf;  
 	}  
