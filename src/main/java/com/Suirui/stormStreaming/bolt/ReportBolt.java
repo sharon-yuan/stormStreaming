@@ -30,7 +30,7 @@ public class ReportBolt extends BaseRichBolt {
 	}
 
 	public void prepare(@SuppressWarnings("rawtypes") Map arg0, TopologyContext arg1, OutputCollector arg2) {
-		countMap = new HashMap<>();
+		countMap = new HashMap<Integer, Integer>();
 
 	}
 
