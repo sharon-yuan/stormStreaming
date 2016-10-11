@@ -116,7 +116,7 @@ public class DailyEventTopology extends BasicTopology {
 	}
 public void configureCountBolt(TopologyBuilder builder){
 	MinCountBolt minCountBolt=new MinCountBolt();
-	builder.setBolt("count_bolt", minCountBolt);
+	builder.setBolt("count_bolt", minCountBolt).shuffleGrouping("kafkaSpout");
 }
 	public void configureHBaseBolt(TopologyBuilder builder) {
 		HbaseBolt hbaseBolt = new HbaseBolt(topologyConfig);
