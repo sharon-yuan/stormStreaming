@@ -3,7 +3,6 @@ package com.Suirui.stormStreaming.topology;
 import org.apache.log4j.Logger;
 import org.apache.storm.hdfs.bolt.format.RecordFormat;
 
-import com.Suirui.stormStreaming.bolt.CountResultHbaseBolt;
 import com.Suirui.stormStreaming.bolt.FileTimeRotationPolicy;
 import com.Suirui.stormStreaming.bolt.HbaseBolt;
 import com.Suirui.stormStreaming.bolt.HiveTablePartitionAction;
@@ -120,7 +119,7 @@ public void configureCountBolt(TopologyBuilder builder){
 }
 	public void configureHBaseBolt(TopologyBuilder builder) {
 		HbaseBolt hbaseBolt = new HbaseBolt(topologyConfig);
-		builder.setBolt("hbase_bolt", hbaseBolt, 2).shuffleGrouping("minCountBolt");
+		builder.setBolt("hbase_bolt", hbaseBolt, 2).shuffleGrouping("count_bolt");
 	}
 
 	
