@@ -3,9 +3,11 @@ package com.Suirui.stormStreaming.topology;
 import org.apache.log4j.Logger;
 import org.apache.storm.hdfs.bolt.format.RecordFormat;
 
+import com.Suirui.stormStreaming.bolt.CountResultHbaseBolt;
 import com.Suirui.stormStreaming.bolt.FileTimeRotationPolicy;
 import com.Suirui.stormStreaming.bolt.HbaseBolt;
 import com.Suirui.stormStreaming.bolt.HiveTablePartitionAction;
+import com.Suirui.stormStreaming.bolt.MinCountBolt;
 import com.Suirui.stormStreaming.spout.EventScheme;
 import org.apache.storm.hdfs.bolt.HdfsBolt;
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
@@ -47,8 +49,10 @@ public class DailyEventTopology extends BasicTopology {
 		configureKafkaSpout(builder);
 		if (topologyConfig.getProperty("kafka.topic").contains("msg"))
 			{
+			configureCountBolt(builder);
 			LOG.info("start HBaseconfig");
 			configureHBaseBolt(builder);
+			
 			}
 		else
 			;// TODO 
@@ -110,7 +114,10 @@ public class DailyEventTopology extends BasicTopology {
 
 		return spoutConfig;
 	}
-
+public void configureCountBolt(TopologyBuilder builder){
+	MinCountBolt minCountBolt=new MinCountBolt();
+	builder.setBolt("count_bolt", minCountBolt);
+}
 	public void configureHBaseBolt(TopologyBuilder builder) {
 		HbaseBolt hbaseBolt = new HbaseBolt(topologyConfig);
 		builder.setBolt("hbase_bolt", hbaseBolt, 2).shuffleGrouping("kafkaSpout");
