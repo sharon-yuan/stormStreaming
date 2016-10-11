@@ -120,7 +120,7 @@ public void configureCountBolt(TopologyBuilder builder){
 }
 	public void configureHBaseBolt(TopologyBuilder builder) {
 		HbaseBolt hbaseBolt = new HbaseBolt(topologyConfig);
-		builder.setBolt("hbase_bolt", hbaseBolt, 2).shuffleGrouping("kafkaSpout");
+		builder.setBolt("hbase_bolt", hbaseBolt, 2).shuffleGrouping("minCountBolt");
 	}
 
 	
