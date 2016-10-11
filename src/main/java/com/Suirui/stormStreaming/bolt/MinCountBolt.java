@@ -3,6 +3,8 @@ package com.Suirui.stormStreaming.bolt;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 import backtype.storm.Config;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -20,7 +22,7 @@ public class MinCountBolt  implements IRichBolt{
 
 	private static final Object emitFrequencyInSeconds = 60;
 	private static int tupleCount=0;
-
+	private static final Logger LOG = Logger.getLogger(MinCountBolt.class);
 	private OutputCollector collector;
 	@Override
 	public void cleanup() {
@@ -32,7 +34,7 @@ public class MinCountBolt  implements IRichBolt{
 	public void execute(Tuple tuple) {
 		
 	    if (TupleHelpers.isTickTuple(tuple)) {  
-	        //log.info("tick tuple: " + tuple);  
+	    	LOG.info("tick tuple: " + tuple);  
 	        emitCountingData(collector,tuple);  
 	    } else {  
 	        countInLocal(tuple);  

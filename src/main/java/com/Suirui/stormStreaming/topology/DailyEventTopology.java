@@ -46,9 +46,10 @@ public class DailyEventTopology extends BasicTopology {
 		TopologyBuilder builder = new TopologyBuilder();
 		LOG.info("start config");
 		configureKafkaSpout(builder);
+		configureCountBolt(builder);
 		if (topologyConfig.getProperty("kafka.topic").contains("msg"))
 			{
-			configureCountBolt(builder);
+			
 			LOG.info("start HBaseconfig");
 			configureHBaseBolt(builder);
 			
