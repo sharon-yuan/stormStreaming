@@ -76,7 +76,7 @@ public class DailyEventTopology extends BasicTopology {
 		try {
 			LOG.info("starting submit topology");
 			StormSubmitter.submitTopology("zoom-msg-processor", conf, builder.createTopology());
-			LOG.info("ending submit topology");
+			LOG.info("ending submit topology without err~~~~");
 		} catch (Exception e) {
 			LOG.error("Error submiting Topology", e);
 		}
