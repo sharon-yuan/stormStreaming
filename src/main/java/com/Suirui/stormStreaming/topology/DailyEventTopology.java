@@ -162,7 +162,7 @@ public void configureCountBolt(TopologyBuilder builder){
 					.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy).addRotationAction(hivePartitionAction);
 
 			int hdfsBoltCount = Integer.valueOf(topologyConfig.getProperty("hdfsbolt.thread.count"));
-			builder.setBolt("hdfs_bolt", hdfsBolt, hdfsBoltCount).shuffleGrouping("kafkaSpout");
+			builder.setBolt("hdfs_bolt", hdfsBolt, hdfsBoltCount).shuffleGrouping("                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ");
 		}
 	 
 

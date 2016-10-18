@@ -36,7 +36,7 @@ notification.all.events.notification.topic.name=zoom_msg
 
 # Kafka Spout Settings
 kafka.zookeeper.host.port=sandbox.hortonworks.com:2181
-kafka.topic=zoom_msg
+kafka.topic=zoom
 kafka.zkRoot=
 kafka.consumer.group.id=group1
 
