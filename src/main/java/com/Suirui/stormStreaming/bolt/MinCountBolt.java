@@ -24,7 +24,7 @@ public class MinCountBolt  implements IRichBolt{
 	private static final Object emitFrequencyInSeconds = 60;
 	private static int tupleCount=0;
 	private static final Logger LOG = Logger.getLogger(MinCountBolt.class);
-	private OutputCollector collector;
+	private OutputCollector collector ;
 	@Override
 	public void cleanup() {
 		// TODO MinCountBolt cleanup
@@ -58,10 +58,10 @@ public class MinCountBolt  implements IRichBolt{
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public void prepare(Map arg0, TopologyContext arg1, OutputCollector arg2) {
-		// TODO MinCountBolt prepare
-		
-	}
+	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+
+		this.collector = collector;
+		}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
