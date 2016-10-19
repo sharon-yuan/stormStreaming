@@ -59,16 +59,13 @@ public class MinCountBolt  implements IRichBolt{
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
-
 		this.collector = collector;
 		}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields("msg"));
-		
-		
-	}
+		}
 
 	@Override  
 	public Map<String, Object> getComponentConfiguration() {  
