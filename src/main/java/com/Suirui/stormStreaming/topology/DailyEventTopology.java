@@ -53,6 +53,7 @@ public class DailyEventTopology extends BasicTopology {
 			LOG.info("start HBaseconfig");
 			configureHBaseBolt(builder);
 			configureCountBolt(builder);
+			
 			}
 		else
 			;// TODO 
