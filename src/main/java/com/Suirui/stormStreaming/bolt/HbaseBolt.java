@@ -37,7 +37,7 @@ public class HbaseBolt implements IRichBolt {
 	private HTableInterface zoomMsgTable;
 
 	private boolean persistAllEvents;
-
+	
 	public HbaseBolt(Properties topologyConfig) {
 		this.persistAllEvents = Boolean.valueOf(topologyConfig.getProperty("hbase.persist.all.events")).booleanValue();
 		LOG.info("The PersistAllEvents Flag is set to: " + persistAllEvents);
@@ -67,7 +67,7 @@ public class HbaseBolt implements IRichBolt {
 		String columnFamily = ZOOM_TABLE_COLUMN_FAMILY_NAME;
 	
 			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes("firstAttri"),
-					Bytes.toBytes("msgfiled"));
+					Bytes.toBytes(msgfiled));
 		try {
 			this.zoomMsgTable.put(put);
 			LOG.info("Success inserting event into HBase table[" + ZOOM_TABLE_NAME + "]");
@@ -79,7 +79,7 @@ public class HbaseBolt implements IRichBolt {
 		}
 		collector.ack(arg0);
 	}
-
+	private String aString;
 	@SuppressWarnings({ "rawtypes" })
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -92,7 +92,11 @@ public class HbaseBolt implements IRichBolt {
 			this.connection = HConnectionManager.createConnection(constructConfiguration());
 
 			String[] nameList = connection.getTableNames();
+			
 			if (nameList.length > 0) {
+				for(String tempStringNameList:nameList){
+					aString+=tempStringNameList;
+				}
 				boolean tempTableNameFlag = false;
 				for (String tempTableName : nameList) {
 					if (tempTableName.equals(ZOOM_TABLE_NAME)) {
@@ -110,7 +114,7 @@ public class HbaseBolt implements IRichBolt {
 			}
 
 		} catch (Exception e) {
-			String errMsg = "Error retrievinging connection and access to Table";
+			String errMsg = "Error retrievinging connection and access to Table, get name list is-----"+aString+"-----";
 			LOG.error(errMsg, e);
 			throw new RuntimeException(errMsg, e);
 		}
