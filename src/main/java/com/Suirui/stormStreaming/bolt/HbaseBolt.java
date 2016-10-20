@@ -67,7 +67,7 @@ public class HbaseBolt implements IRichBolt {
 		String columnFamily = ZOOM_TABLE_COLUMN_FAMILY_NAME;
 	
 			put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes("firstAttri"),
-					Bytes.toBytes("msgfiled"));
+					Bytes.toBytes(msgfiled));
 		try {
 			this.zoomMsgTable.put(put);
 			LOG.info("Success inserting event into HBase table[" + ZOOM_TABLE_NAME + "]");
