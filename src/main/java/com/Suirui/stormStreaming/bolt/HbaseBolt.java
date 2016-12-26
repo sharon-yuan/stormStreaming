@@ -43,7 +43,6 @@ public class HbaseBolt implements IRichBolt {
 		LOG.info("The PersistAllEvents Flag is set to: " + persistAllEvents);
 	}
 
-	@Override
 	public void cleanup() {
 
 		try {
@@ -55,7 +54,6 @@ public class HbaseBolt implements IRichBolt {
 
 	}
 
-	@Override
 	public void execute(Tuple arg0) {
 
 		LOG.info("About to insert tuple[" + arg0 + "] into HBase...");
@@ -83,7 +81,6 @@ public class HbaseBolt implements IRichBolt {
 	}
 
 	@SuppressWarnings({ "rawtypes" })
-	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 
 		this.collector = collector;
