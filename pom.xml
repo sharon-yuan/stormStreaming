@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.Suirui</groupId>
-  <artifactId>stormStreaming</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
+	<groupId>com.Suirui</groupId>
+	<artifactId>stormStreaming</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
-  <name>stormStreaming</name>
-  <url>http://maven.apache.org</url>
+	<name>stormStreaming</name>
+	<url>http://maven.apache.org</url>
 
 	<properties>
 
@@ -29,6 +29,7 @@
 		<junit.version>4.5</junit.version>
 		<mail.version>1.4.3</mail.version>
 		<log4j.version>1.2.17</log4j.version>
+		<commons-lang3.version>3.4</commons-lang3.version>
 	</properties>
 
 	<repositories>
@@ -305,6 +306,18 @@
 			<artifactId>junit</artifactId>
 			<version>${junit.version}</version>
 			<scope>test</scope>
+		</dependency>
+
+		<!-- Utils -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${commons-lang3.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.17</version>
 		</dependency>
 
 	</dependencies>

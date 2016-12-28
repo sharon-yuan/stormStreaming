@@ -32,11 +32,15 @@ public class DailyEventTopology extends BasicTopology {
 
 	public static void main(String[] args) throws Exception {
 		String configFileLocation;
-		if (args!=null&&args.length>0){
+		if (args != null && args.length > 0) {
 			System.out.println(args.length);
-			for(String astring:args)System.out.println(astring);
-		configFileLocation = args[0];}
-		else configFileLocation=null;
+			for (String astring : args) {
+				System.out.println(astring);
+			}		
+			configFileLocation = args[0];
+		} else {
+			configFileLocation = null;
+		}			
 		DailyEventTopology truckTopology = new DailyEventTopology(configFileLocation);
 		truckTopology.WSYBuildAndSubmit();
 	}
@@ -44,20 +48,19 @@ public class DailyEventTopology extends BasicTopology {
 	@SuppressWarnings("deprecation")
 	private void WSYBuildAndSubmit() {
 		TopologyBuilder builder = new TopologyBuilder();
-		LOG.info("start config");
+		LOG.error("start config");
 		configureKafkaSpout(builder);
-		
-		if (topologyConfig.getProperty("kafka.topic").contains("msg"))
-			{
-			
+
+		if (topologyConfig.getProperty("kafka.topic").contains("msg")) {
+
 			LOG.info("start HBaseconfig");
-			//configureCountBolt(builder);
+			// configureCountBolt(builder);
 			configureHBaseBolt(builder);
-			
-			}
-		else
-			;// TODO 
-		configureHDFSBolt(builder);
+
+		} else {
+			configureHDFSBolt(builder);;
+		}
+
 		Config conf = new Config();
 		conf.setDebug(true);
 		/*
@@ -84,8 +87,6 @@ public class DailyEventTopology extends BasicTopology {
 
 	}
 
-	
-	
 	public int configureKafkaSpout(TopologyBuilder builder) {
 		KafkaSpout kafkaSpout = new KafkaSpout(constructKafkaSpoutConf());
 
@@ -95,8 +96,6 @@ public class DailyEventTopology extends BasicTopology {
 		builder.setSpout("kafkaSpout", kafkaSpout, spoutCount);
 		return boltCount;
 	}
-
-	
 
 	private SpoutConfig constructKafkaSpoutConf() {
 		BrokerHosts hosts = new ZkHosts(topologyConfig.getProperty("kafka.zookeeper.host.port"));
@@ -112,59 +111,59 @@ public class DailyEventTopology extends BasicTopology {
 		 * are sent to the set of bolts
 		 */
 		spoutConfig.scheme = new SchemeAsMultiScheme(new EventScheme());
-
+		
 		return spoutConfig;
 	}
-public void configureCountBolt(TopologyBuilder builder){
-	MinCountBolt minCountBolt=new MinCountBolt();
-	builder.setBolt("count_bolt", minCountBolt).shuffleGrouping("kafkaSpout");
-}
+
+	public void configureCountBolt(TopologyBuilder builder) {
+		MinCountBolt minCountBolt = new MinCountBolt();
+		builder.setBolt("count_bolt", minCountBolt).shuffleGrouping("kafkaSpout");
+	}
+
 	public void configureHBaseBolt(TopologyBuilder builder) {
 		HbaseBolt hbaseBolt = new HbaseBolt(topologyConfig);
 		builder.setBolt("hbase_bolt", hbaseBolt, 2).shuffleGrouping("kafkaSpout");
 	}
 
-	
-	  public void configureHDFSBolt(TopologyBuilder builder) {
-			// Use pipe as record boundary
+	public void configureHDFSBolt(TopologyBuilder builder) {
+		// Use pipe as record boundary
 
-			String rootPath = topologyConfig.getProperty("hdfs.path");
-			String prefix = topologyConfig.getProperty("hdfs.file.prefix");
-			String fsUrl = topologyConfig.getProperty("hdfs.url");
-			String sourceMetastoreUrl = topologyConfig.getProperty("hive.metastore.url");
-			String hiveStagingTableName = topologyConfig.getProperty("hive.staging.table.name");
-			String databaseName = topologyConfig.getProperty("hive.database.name");
-			Float rotationTimeInMinutes = Float.valueOf(topologyConfig.getProperty("hdfs.file.rotation.time.minutes"));
+		String rootPath = topologyConfig.getProperty("hdfs.path");
+		String prefix = topologyConfig.getProperty("hdfs.file.prefix");
+		String fsUrl = topologyConfig.getProperty("hdfs.url");
+		String sourceMetastoreUrl = topologyConfig.getProperty("hive.metastore.url");
+		String hiveStagingTableName = topologyConfig.getProperty("hive.staging.table.name");
+		String databaseName = topologyConfig.getProperty("hive.database.name");
+		Float rotationTimeInMinutes = Float.valueOf(topologyConfig.getProperty("hdfs.file.rotation.time.minutes"));
 
-			RecordFormat format = new DelimitedRecordFormat().withFieldDelimiter(",");
+		RecordFormat format = new DelimitedRecordFormat().withFieldDelimiter(",");
 
-			// Synchronize data buffer with the filesystem every 1000 tuples
-			SyncPolicy syncPolicy = new CountSyncPolicy(1000);
+		// Synchronize data buffer with the filesystem every 1000 tuples
+		SyncPolicy syncPolicy = new CountSyncPolicy(1000);
 
-			// Rotate data files when they reach five MB
-			// FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f,
-			// Units.MB);
+		// Rotate data files when they reach five MB
+		// FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f,
+		// Units.MB);
 
-			// Rotate every X minutes
-			FileTimeRotationPolicy rotationPolicy = new FileTimeRotationPolicy(rotationTimeInMinutes,
-					FileTimeRotationPolicy.Units.MINUTES);
+		// Rotate every X minutes
+		FileTimeRotationPolicy rotationPolicy = new FileTimeRotationPolicy(rotationTimeInMinutes,
+				FileTimeRotationPolicy.Units.MINUTES);
 
-			// Hive Partition Action
-			HiveTablePartitionAction hivePartitionAction = new HiveTablePartitionAction(sourceMetastoreUrl,
-					hiveStagingTableName, databaseName, fsUrl);
+		// Hive Partition Action
+		HiveTablePartitionAction hivePartitionAction = new HiveTablePartitionAction(sourceMetastoreUrl,
+				hiveStagingTableName, databaseName, fsUrl);
 
-			// MoveFileAction moveFileAction = new
-			// MoveFileAction().toDestination(rootPath + "/working");
+		// MoveFileAction moveFileAction = new
+		// MoveFileAction().toDestination(rootPath + "/working");
 
-			FileNameFormat fileNameFormat = new DefaultFileNameFormat().withPath(rootPath + "/staging").withPrefix(prefix);
+		FileNameFormat fileNameFormat = new DefaultFileNameFormat().withPath(rootPath + "/staging").withPrefix(prefix);
 
-			// Instantiate the HdfsBolt
-			HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(fsUrl).withFileNameFormat(fileNameFormat).withRecordFormat(format)
-					.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy).addRotationAction(hivePartitionAction);
+		// Instantiate the HdfsBolt
+		HdfsBolt hdfsBolt = new HdfsBolt().withFsUrl(fsUrl).withFileNameFormat(fileNameFormat).withRecordFormat(format)
+				.withRotationPolicy(rotationPolicy).withSyncPolicy(syncPolicy).addRotationAction(hivePartitionAction);
 
-			int hdfsBoltCount = Integer.valueOf(topologyConfig.getProperty("hdfsbolt.thread.count"));
-			builder.setBolt("hdfs_bolt", hdfsBolt, hdfsBoltCount).shuffleGrouping("kafkaSpout");
-		}
-	 
+		int hdfsBoltCount = Integer.valueOf(topologyConfig.getProperty("hdfsbolt.thread.count"));
+		builder.setBolt("hdfs_bolt", hdfsBolt, hdfsBoltCount).shuffleGrouping("kafkaSpout");
+	}
 
 }

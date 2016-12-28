@@ -1,12 +1,19 @@
 package com.Suirui.stormStreaming.bolt;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -19,6 +26,11 @@ import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
+import com.Suirui.stormStreaming.util.*;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import org.apache.hadoop.hbase.client.Result;
+
 
 @SuppressWarnings("deprecation")
 public class HbaseBolt implements IRichBolt {
@@ -29,8 +41,31 @@ public class HbaseBolt implements IRichBolt {
 
 	private static final Logger LOG = Logger.getLogger(HbaseBolt.class);
 
-	private  String ZOOM_TABLE_NAME = "zoom";
-	private static final String ZOOM_TABLE_COLUMN_FAMILY_NAME = "msg";
+	private String ZOOM_TABLE_NAME = "zoom-event";
+	// 基础信息族
+	private static final String ZOOM_BASE_INFO_FAMILY_NAME = "BaseInfo";
+	// source信息族，把source拆分后插入
+	private static final String ZOOM_SOURCE_FAMILY_NAME = "Source";
+	// content信息
+	private static final String ZOOM_CONTENT_FAMILY_NAME = "Content";
+	private static final List<String> BASE_ARRY = new ArrayList<String>() {
+		{
+			add("app");
+			add("project");
+			add("module");
+			add("level");
+		}
+	};
+	private static final List<String> SOURCE_ARRY = new ArrayList<String>() {
+		{
+			add("source");
+		}
+	};
+	private static final List<String> CONTENT_ARRY = new ArrayList<String>() {
+		{
+			add("content");
+		}
+	};
 
 	private OutputCollector collector;
 	private HConnection connection;
@@ -56,30 +91,110 @@ public class HbaseBolt implements IRichBolt {
 	}
 
 	@Override
-	public void execute(Tuple arg0) {
+	public void execute(Tuple tuple) {
 
-		LOG.info("About to insert tuple[" + arg0 + "] into HBase...");
-		
-		String msgfiled=arg0.getStringByField("msg");
-		
-		double randemD = Math.random() * 1000;
-		Put put = new Put(Bytes.toBytes("zoom-suirui-19900326" + randemD));
-		String columnFamily = ZOOM_TABLE_COLUMN_FAMILY_NAME;
-	
-			/*put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes("firstAttri"),
-					Bytes.toBytes("msgfiled"));*/
-		put.addColumn(Bytes.toBytes(columnFamily), Bytes.toBytes("firstAttri"),
-				Bytes.toBytes(msgfiled));
+		LOG.info("About to insert tuple[" + tuple + "] into HBase...");
+
+		String msgfiled = tuple.getStringByField("msg");
 		try {
-			this.zoomMsgTable.put(put);
-			LOG.info("Success inserting event into HBase table[" + ZOOM_TABLE_NAME + "]");
+			msgfiled = URLDecoder.decode(msgfiled, "utf-8");
+		} catch (UnsupportedEncodingException e1) {
+			LOG.error(e1.getMessage());
+		}
+		LOG.info("msg = " + msgfiled);
+		String id = RandomUtil.generateNum(10);
+		
+		while(true) {
+			LOG.info("Test id" + id);
+			try {
+				Get get = new Get(Bytes.toBytes(id));
+				Result ret = this.zoomMsgTable.get(get);
+
+				if (ret.isEmpty()) {
+					break;
+				}else {
+					id = RandomUtil.generateNum(10);
+				}
+			} catch (IOException e1) {
+				LOG.error(e1.getMessage());
+			}
+		}
+		
+		Put put = new Put(Bytes.toBytes(id));
+		String baseFamily = ZOOM_BASE_INFO_FAMILY_NAME;
+
+		Map<String, String> data = convertPacket(msgfiled);
+		boolean hasColumn = false;
+		for (Map.Entry<String, String> entry : data.entrySet()) {
+			LOG.info("key : " + entry.getKey());
+			LOG.info("entry : " + entry.getValue());
+			if (BASE_ARRY.contains(entry.getKey())) {
+				put.addColumn(Bytes.toBytes(baseFamily), Bytes.toBytes(entry.getKey()),
+						Bytes.toBytes(entry.getValue()));
+			} else if (SOURCE_ARRY.contains(entry.getKey())) {
+				Map<String, String> source = splitSource(entry.getValue());
+				for (Map.Entry<String, String> sourceItem : source.entrySet()) {
+					put.addColumn(Bytes.toBytes(ZOOM_SOURCE_FAMILY_NAME), Bytes.toBytes(sourceItem.getKey()),
+							Bytes.toBytes(sourceItem.getValue()));
+				}
+			} else if (CONTENT_ARRY.contains(entry.getKey())) {
+
+				String content = entry.getValue();
+				try {
+					content = URLDecoder.decode(content, "utf-8");
+					JSONObject contentObject = JSON.parseObject(content);
+					for (Map.Entry<String, Object> contentIetm : contentObject.entrySet()) {
+						put.addColumn(Bytes.toBytes(ZOOM_CONTENT_FAMILY_NAME), Bytes.toBytes(contentIetm.getKey()),
+								Bytes.toBytes(URLEncoder.encode(contentIetm.getValue().toString(), "utf-8" ) ));
+					}
+				} catch (UnsupportedEncodingException e) {
+					LOG.error(e.getMessage());
+				}
+			}
+			hasColumn = true;
+		}
+
+		LOG.info("insert to hbase ..");
+		try {
+			if (hasColumn) {
+				this.zoomMsgTable.put(put);
+				LOG.info("Success inserting event into HBase table[" + ZOOM_TABLE_NAME + "]");
+			} else {
+				LOG.info("data Format error");
+			}
 
 		} catch (IOException e) {
 			LOG.error("Error inserting event into HBase table[" + ZOOM_TABLE_NAME + "]");
-
-			e.printStackTrace();
 		}
-		collector.ack(arg0);
+		collector.ack(tuple);
+	}
+
+	private Map<String, String> convertPacket(String content) {
+		Map<String, String> ret = new HashMap<String, String>();
+		if (StringUtils.isNotBlank(content)) {
+			String[] args = StringUtils.split(content, "&");
+			for (int i = 0; i < args.length; i++) {
+				String pair[] = StringUtils.split(args[i], "=");
+				if (pair.length == 2) {
+					ret.put(pair[0], pair[1]);
+				}
+			}
+		}
+		return ret;
+	}
+
+	private Map<String, String> splitSource(String source) {
+		Map<String, String> ret = new HashMap<String, String>();
+		if (StringUtils.isNotBlank(source)) {
+			String[] args = StringUtils.split(source, ";");
+			for (int i = 0; i < args.length; i++) {
+				String pair[] = StringUtils.split(args[i], ":");
+				if (pair.length == 2) {
+					ret.put(pair[0], pair[1]);
+				}
+			}
+		}
+		return ret;
 	}
 
 	@SuppressWarnings({ "rawtypes" })
@@ -89,8 +204,10 @@ public class HbaseBolt implements IRichBolt {
 		this.collector = collector;
 		try {
 			// this.connection =
-			/*HConnectionManager.createConnection(constructConfiguration());
-			 this.zoomMsgTable = connection.getTable(ZOOM_TABLE_NAME);*/
+			/*
+			 * HConnectionManager.createConnection(constructConfiguration());
+			 * this.zoomMsgTable = connection.getTable(ZOOM_TABLE_NAME);
+			 */
 			this.connection = HConnectionManager.createConnection(constructConfiguration());
 
 			String[] nameList = connection.getTableNames();
@@ -102,9 +219,9 @@ public class HbaseBolt implements IRichBolt {
 						tempTableNameFlag = true;
 					}
 				}
-				if(tempTableNameFlag==false){
+				if (tempTableNameFlag == false) {
 					this.zoomMsgTable = connection.getTable(nameList[0]);
-					ZOOM_TABLE_NAME=nameList[0];
+					ZOOM_TABLE_NAME = nameList[0];
 					tempTableNameFlag = true;
 				}
 			} else {
