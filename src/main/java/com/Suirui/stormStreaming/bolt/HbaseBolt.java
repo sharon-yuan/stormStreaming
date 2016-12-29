@@ -31,7 +31,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.hadoop.hbase.client.Result;
 
-
 @SuppressWarnings("deprecation")
 public class HbaseBolt implements IRichBolt {
 	/**
@@ -41,6 +40,7 @@ public class HbaseBolt implements IRichBolt {
 
 	private static final Logger LOG = Logger.getLogger(HbaseBolt.class);
 
+	// 瞩目上报信息表
 	private String ZOOM_TABLE_NAME = "zoom-event";
 	// 基础信息族
 	private static final String ZOOM_BASE_INFO_FAMILY_NAME = "BaseInfo";
@@ -48,6 +48,17 @@ public class HbaseBolt implements IRichBolt {
 	private static final String ZOOM_SOURCE_FAMILY_NAME = "Source";
 	// content信息
 	private static final String ZOOM_CONTENT_FAMILY_NAME = "Content";
+	// 错误信息表
+	private static final String EXCEPTION_TABLE_NAME = "all-exception";
+	// 错误包
+	private static final String ERR_PACKAGE_FAMILY_NAME = "ErrPackage";
+
+	private OutputCollector collector;
+	private HConnection connection;
+	private HTableInterface zoomMsgTable;
+	private HTableInterface exceptionTable;
+	private boolean persistAllEvents;
+
 	private static final List<String> BASE_ARRY = new ArrayList<String>() {
 		{
 			add("app");
@@ -66,12 +77,6 @@ public class HbaseBolt implements IRichBolt {
 			add("content");
 		}
 	};
-
-	private OutputCollector collector;
-	private HConnection connection;
-	private HTableInterface zoomMsgTable;
-
-	private boolean persistAllEvents;
 
 	public HbaseBolt(Properties topologyConfig) {
 		this.persistAllEvents = Boolean.valueOf(topologyConfig.getProperty("hbase.persist.all.events")).booleanValue();
@@ -103,8 +108,8 @@ public class HbaseBolt implements IRichBolt {
 		}
 		LOG.info("msg = " + msgfiled);
 		String id = RandomUtil.generateNum(10);
-		
-		while(true) {
+
+		while (true) {
 			LOG.info("Test id" + id);
 			try {
 				Get get = new Get(Bytes.toBytes(id));
@@ -112,14 +117,14 @@ public class HbaseBolt implements IRichBolt {
 
 				if (ret.isEmpty()) {
 					break;
-				}else {
+				} else {
 					id = RandomUtil.generateNum(10);
 				}
 			} catch (IOException e1) {
 				LOG.error(e1.getMessage());
 			}
 		}
-		
+
 		Put put = new Put(Bytes.toBytes(id));
 		String baseFamily = ZOOM_BASE_INFO_FAMILY_NAME;
 
@@ -131,27 +136,34 @@ public class HbaseBolt implements IRichBolt {
 			if (BASE_ARRY.contains(entry.getKey())) {
 				put.addColumn(Bytes.toBytes(baseFamily), Bytes.toBytes(entry.getKey()),
 						Bytes.toBytes(entry.getValue()));
+				hasColumn = true;
 			} else if (SOURCE_ARRY.contains(entry.getKey())) {
 				Map<String, String> source = splitSource(entry.getValue());
 				for (Map.Entry<String, String> sourceItem : source.entrySet()) {
 					put.addColumn(Bytes.toBytes(ZOOM_SOURCE_FAMILY_NAME), Bytes.toBytes(sourceItem.getKey()),
 							Bytes.toBytes(sourceItem.getValue()));
 				}
+				hasColumn = true;
 			} else if (CONTENT_ARRY.contains(entry.getKey())) {
 
 				String content = entry.getValue();
 				try {
 					content = URLDecoder.decode(content, "utf-8");
+					content = StringUtils.replace(content, "\\", "");
 					JSONObject contentObject = JSON.parseObject(content);
 					for (Map.Entry<String, Object> contentIetm : contentObject.entrySet()) {
 						put.addColumn(Bytes.toBytes(ZOOM_CONTENT_FAMILY_NAME), Bytes.toBytes(contentIetm.getKey()),
-								Bytes.toBytes(URLEncoder.encode(contentIetm.getValue().toString(), "utf-8" ) ));
+								Bytes.toBytes(URLEncoder.encode(contentIetm.getValue().toString(), "utf-8")));
 					}
-				} catch (UnsupportedEncodingException e) {
+					hasColumn = true;
+				} catch (Exception e) {
+					hasColumn = false;
+					LOG.error("handle content error!");
 					LOG.error(e.getMessage());
+					insertException(msgfiled);					
 				}
 			}
-			hasColumn = true;
+
 		}
 
 		LOG.info("insert to hbase ..");
@@ -167,6 +179,36 @@ public class HbaseBolt implements IRichBolt {
 			LOG.error("Error inserting event into HBase table[" + ZOOM_TABLE_NAME + "]");
 		}
 		collector.ack(tuple);
+	}
+
+	private void insertException(String errPackage) {
+		String id = RandomUtil.generateNum(10);
+
+		while (true) {
+			LOG.info("Test id" + id);
+			try {
+				Get get = new Get(Bytes.toBytes(id));
+				Result ret = this.exceptionTable.get(get);
+
+				if (ret.isEmpty()) {
+					break;
+				} else {
+					id = RandomUtil.generateNum(10);
+				}
+			} catch (IOException e1) {
+				LOG.error(e1.getMessage());
+			}
+		}
+
+		Put put = new Put(Bytes.toBytes(id));
+		try {
+			put.addColumn(Bytes.toBytes(ERR_PACKAGE_FAMILY_NAME), Bytes.toBytes("package"), Bytes.toBytes(errPackage));
+			this.exceptionTable.put(put);
+			LOG.info("Success inserting event into HBase table[" + EXCEPTION_TABLE_NAME + "]");
+		} catch (IOException e) {
+			LOG.info("fail to  inserting event into HBase table[" + EXCEPTION_TABLE_NAME + "]");
+			LOG.error(e.getMessage());
+		}
 	}
 
 	private Map<String, String> convertPacket(String content) {
@@ -216,6 +258,10 @@ public class HbaseBolt implements IRichBolt {
 				for (String tempTableName : nameList) {
 					if (tempTableName.equals(ZOOM_TABLE_NAME)) {
 						this.zoomMsgTable = connection.getTable(ZOOM_TABLE_NAME);
+						tempTableNameFlag = true;
+					}
+					if (tempTableName.equals(EXCEPTION_TABLE_NAME)) {
+						this.exceptionTable = connection.getTable(EXCEPTION_TABLE_NAME);
 						tempTableNameFlag = true;
 					}
 				}
